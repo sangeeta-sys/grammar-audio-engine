@@ -1,0 +1,58 @@
+from pydub import AudioSegment
+import whisper
+import language_tool_python
+
+def convert_to_wav(input_path):
+    print(" Converting audio to WAV format...")
+    AudioSegment.converter = r"C:\Users\VNSMK03\Downloads\ffmpeg-7.1.1-essentials_build\ffmpeg-7.1.1-essentials_build\bin\ffmpeg.exe"
+    audio = AudioSegment.from_file(input_path)
+    output_path = "temp.wav"
+    audio.export(output_path, format="wav")
+    return output_path
+
+def transcribe_audio(file_path):
+    wav_path = convert_to_wav(file_path)
+    print(" Transcribing audio...")
+    model = whisper.load_model("base")
+    result = model.transcribe(wav_path)
+    return result['text']
+
+def check_grammar(text):
+    print(" Checking grammar...")
+    tool = language_tool_python.LanguageTool('en-US')
+    matches = tool.check(text)
+
+    print(f"\n Debug => Total grammar matches found: {len(matches)}")
+
+    if not matches:
+        print(" No grammar issues found!")
+    else:
+        print(f" Found {len(matches)} grammar issue(s):\n")
+        for match in matches:
+            print(f"- {match.message}")
+            print(f"  Incorrect: '{text[match.offset: match.offset + match.errorLength]}'")
+            print(f"  Suggestion(s): {match.replacements}")
+            print()
+
+def main():
+    print("=== Grammar Engine ===")
+
+    audio_path = r"C:\Users\VNSMK03\Desktop\thinknext5.mp3"
+    print(f" Using audio file: {audio_path}")
+
+    if not os.path.isfile(audio_path):
+        print(" File not found. Please check the path and try again.")
+        return
+
+    try:
+        transcript = transcribe_audio(audio_path)
+        print("\n Transcript:")
+        print(transcript)
+
+        check_grammar(transcript)
+
+    except Exception as e:
+        print(f" Error: {e}")
+
+if __name__ == "__main__":
+    main()
